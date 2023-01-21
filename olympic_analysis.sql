@@ -51,7 +51,7 @@ SELECT distinct
 
 --5. Which nation has participated in all of the olympic games ?
     --- create a table1 with country and the number of times each country took part in the olympic games
-	--- creat a table2 count total number of olympic games were held 
+	--- create a table2 count total number of olympic games were held 
 	--- join 2 tables at the number games of table2 --> we have the country took part in all olympic game.
 with all_countries as 
     (SELECT games,region
@@ -139,5 +139,59 @@ rank as
    WHERE rnk=1;
 
 
+-- 10. Find the Ratio of male and female athletes participated in all olympic games.
+ -- create a table1 with the number of male and female
+ -- use min , max to convert the vertical format to horizon format ( 2 column) 
+ -- devide each other to make the ratio
+with sex_num as 
+(SELECT sex,count(sex) as num_math
+  FROM athlete_events
+ GROUP BY sex),
+sex_num_convert as
+(SELECT max(num_math) as m, min(num_math) as f
+  FROM sex_num)
+SELECT concat('1 : ' , round(m*1.0/f,2)) as ratio 
+  FROM sex_num_convert;
+
+
+--- 11. Fetch the top 5 athletes who have won the most gold medals. 
+SELECT name,Medal,team, count(Medal) as num_medal
+  FROM athlete_events
+  group by name,Medal,team
+  having Medal like 'Gold'
+  order by num_medal desc
+  OFFSET 0 ROWS FETCH FIRST 5 ROWS ONLY;
+
+--- 12.Fetch the top 5 athletes who have won the most medals (gold/silver/bronze).
+
+SELECT name,team,count(Medal) as num_medal
+FROM athlete_events
+WHERE Medal is not NULL AND Medal not like 'NA'
+GROUP BY name,team
+ORDER BY num_medal DESC
+OFFSET 0 ROWS FETCH FIRST 5 ROWS ONLY;
+
+--13. Fetch the top 5 most successful countries in olympics. Success is defined by no of medals won.
+SELECT region,count(Medal) as num_medal
+  FROM athlete_events as a 
+  JOIN olympics_history_noc_regions as o 
+  on a.NOC=o.NOC
+WHERE Medal in ('Gold','Silver','Bronze')
+GROUP BY region
+ORDER BY num_medal DESC
+OFFSET 0 ROWS FETCH FIRST 5 ROWS ONLY;
+
+-- 14. List down total gold, silver and bronze medals won by each country.
+SELECT region,Medal
+  FROM athlete_events as a
+  JOIN olympics_history_noc_regions as o 
+  on a.NOC = o.NOC 
+GROUP BY region,Medal
+HAVING Medal in ('Gold','Silver','Bronze');
+
+ 
+
+
+ 
 
  
